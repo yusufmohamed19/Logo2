@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>مركز أكتوبر للتكييف — اختر شعارك</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap');
+:root{--navy:#0B2545;--teal:#13A89E;--gold:#B8965A;--bg:#F4F6F8;--fg:#0B2545;--muted:#5b6b7f;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0d1520;--fg:#e8eef6;--muted:#9fb0c4}}
+:root[data-theme="dark"]{--bg:#0d1520;--fg:#e8eef6;--muted:#9fb0c4}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;font-family:'Cairo',Tahoma,sans-serif;background:var(--bg);color:var(--fg);padding-bottom:96px}
+header{text-align:center;padding:28px 16px 8px}
+header h1{margin:0;font-size:26px}
+header p{margin:6px 0 0;color:var(--muted);font-size:14px}
+.tabs{display:flex;gap:8px;justify-content:center;padding:14px;flex-wrap:wrap}
+.tabs button{font-family:inherit;font-size:14px;font-weight:700;padding:8px 16px;border-radius:20px;border:1px solid var(--gold);background:transparent;color:var(--fg);cursor:pointer}
+.tabs button.on{background:var(--gold);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px;padding:12px 20px;max-width:1350px;margin:auto}
+.card{background:#fff;color:#0B2545;border-radius:14px;padding:14px;cursor:pointer;border:2px solid #e3e8ee;position:relative;transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(11,37,69,.12)}
+.card.sel{border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,150,90,.25)}
+.num{position:absolute;top:10px;left:10px;background:#0B2545;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.heart{position:absolute;top:8px;right:8px;width:38px;height:38px;border-radius:50%;border:1px solid #e3e8ee;background:#fff;font-size:20px;line-height:1;cursor:pointer;color:#B8965A}
+.card.sel .heart{background:#B8965A;color:#fff;border-color:#B8965A}
+.desc{min-height:50px;padding:0 44px 0 40px;font-size:13.5px;line-height:1.6;margin:0 0 6px;text-align:center}
+.card svg{width:100%;height:auto;display:block;border-radius:8px}
+.empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:40px}
+#selbar{position:fixed;left:0;right:0;bottom:0;background:#0B2545;color:#fff;padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;z-index:5}
+#selbar input{font-family:inherit;padding:8px 10px;border-radius:8px;border:0;min-width:150px}
+#selbar button,.bar button{font-family:inherit;font-size:14px;font-weight:700;padding:8px 14px;border:0;border-radius:8px;background:#fff;color:#0B2545;cursor:pointer}
+#selbar button.pri{background:#B8965A;color:#fff}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#13A89E;color:#fff;padding:8px 18px;border-radius:20px;font-weight:700;display:none;z-index:20}
+#modal{position:fixed;inset:0;background:rgba(11,37,69,.94);display:none;z-index:10;flex-direction:column;padding-top:env(safe-area-inset-top,0px)}
+#modal.open{display:flex}
+.bar{display:flex;gap:8px;justify-content:center;align-items:center;padding:12px;flex-wrap:wrap}
+.bar button:hover{background:#B8965A;color:#fff}
+#mtitle{color:#fff;font-weight:700;padding:0 8px}
+#stage{flex:1;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:grab;touch-action:none}
+#holder{width:min(78vh,92vw);background:#fff;border-radius:12px;transform-origin:center;user-select:none;overflow:hidden}
+#holder svg{width:100%;height:auto;display:block;pointer-events:none}
+#mdesc{color:#dfe6ee;text-align:center;padding:8px 16px 16px;font-size:15px}
+</style>
+</head>
+<body>
+<header><h1>مركز أكتوبر للتكييف — اختر شعارك</h1><p>90 مقترحاً للهوية · اضغط على القلب ♡ لاختيار ما يعجبك، ثم أرسل اختياراتك من الشريط السفلي · اضغط على الشعار لتكبيره</p></header>
+<div class="tabs"><button id="tAll" class="on">كل الشعارات</button><button id="tSel">المختارة فقط ♥</button></div>
+<div class="grid" id="grid"></div>
+
+<div id="selbar">
+  <span id="cnt">المختار: 0</span>
+  <input id="cname" placeholder="اسمك (اختياري)">
+  <button class="pri" id="wa">إرسال عبر واتساب</button>
+  <button id="cp">نسخ الأرقام</button>
+  <button id="clr">مسح الاختيار</button>
+</div>
+<div id="toast"></div>
+
+<div id="modal">
+  <div class="bar">
+    <button id="prev">→ السابق</button>
+    <button id="mheart">♡ اختيار</button>
+    <button id="zin">＋</button><button id="zout">－</button><button id="reset">إعادة ضبط</button>
+    <button id="dl" style="display:none">تحميل SVG</button>
+    <button id="next">التالي ←</button>
+    <span id="mtitle"></span>
+    <button id="close">إغلاق ✕</button>
+  </div>
+  <div id="stage"><div id="holder"></div></div>
+  <div id="mdesc"></div>
+</div>
+
+<script>
+const BATCHES=[
+(function(){
+const START=1;
+
+const N='#0B2545',T='#13A89E',G='#B8965A',GR='#3E8E5A';
+const txt=(c1=N,c2=G)=>`<text x="200" y="312" text-anchor="middle" font-family="Cairo,Tajawal,sans-serif" font-size="32" font-weight="800" fill="${c1}">مركز أكتوبر للتكييف</text><text x="200" y="350" text-anchor="middle" font-family="Cairo,sans-serif" font-size="14" font-weight="700" letter-spacing="5" fill="${c2}">OCTOBER AC CENTER</text>`;
+const L=[
+{d:'منزل يحتضنه نسيم منعش: الراحة تبدأ من سقفك.',
+ i:`<path d="M110 150 L200 70 L290 150" fill="none" stroke="${N}" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M125 185 q19 -22 37 0 t37 0 t37 0 t37 0" fill="none" stroke="${T}" stroke-width="11" stroke-linecap="round"/><path d="M145 225 q17 -20 34 0 t34 0 t34 0" fill="none" stroke="${G}" stroke-width="11" stroke-linecap="round"/>`},
+{d:'الرقم 10 لشهر أكتوبر: الواحد عمود، والصفر مجرى هواء.',
+ i:`<rect x="112" y="80" width="24" height="160" rx="12" fill="${N}"/><circle cx="240" cy="160" r="68" fill="none" stroke="${T}" stroke-width="24"/><path d="M208 172 q16 -22 32 0 t32 0" fill="none" stroke="${G}" stroke-width="10" stroke-linecap="round"/>`},
+{d:'حرف الألف بالمساحة السلبية، وهمزته ذهبية دلالة على الفخامة.',
+ i:`<rect x="100" y="60" width="200" height="200" rx="30" fill="${N}"/><rect x="189" y="120" width="22" height="110" rx="11" fill="#fff"/><path d="M186 100 q14 -18 30 -8 q-12 1 -16 14z" fill="${G}"/>`},
+{d:'درع أمان يخفي في داخله موجة هواء بالمساحة السلبية.',
+ i:`<path d="M200 55 L290 90 V165 C290 215 250 245 200 265 C150 245 110 215 110 165 V90 Z" fill="${N}"/><path d="M148 150 q26 -30 52 0 t52 0" fill="none" stroke="#fff" stroke-width="13" stroke-linecap="round"/><path d="M148 195 q26 -30 52 0 t52 0" fill="none" stroke="${T}" stroke-width="13" stroke-linecap="round"/>`},
+{d:'ورقة أكتوبر: نصف دفء الخريف ونصف برودة التكييف.',
+ i:`<path d="M200 60 C110 100 100 200 200 262 Z" fill="${T}"/><path d="M200 60 C290 100 300 200 200 262 Z" fill="${G}"/><path d="M200 95 V240" stroke="#fff" stroke-width="7" stroke-linecap="round"/>`},
+{d:'مونوغرام O وA: حلقة الأمان وفي قلبها قمة الجودة.',
+ i:`<circle cx="200" cy="160" r="92" fill="none" stroke="${N}" stroke-width="18"/><path d="M158 212 L200 108 L242 212" fill="none" stroke="${T}" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M178 178 H222" stroke="${G}" stroke-width="11" stroke-linecap="round"/>`},
+{d:'أفق أكتوبر المعتدل: شمس هادئة فوق أمواج هواء نقي.',
+ i:`<circle cx="200" cy="160" r="102" fill="${N}"/><path d="M142 168 a58 58 0 0 1 116 0Z" fill="${G}"/><path d="M142 192 H258 M152 216 H248 M164 240 H236" stroke="#fff" stroke-width="10" stroke-linecap="round"/>`},
+{d:'فتحة تكييف تتحول أسطرها إلى نسمة تلتف بأناقة.',
+ i:`<path d="M115 90 H255 M115 130 H255 M115 170 H255" stroke="${N}" stroke-width="18" stroke-linecap="round"/><path d="M115 210 H215 q50 0 50 -38" fill="none" stroke="${T}" stroke-width="18" stroke-linecap="round"/>`},
+{d:'سقف يحمي ورقة خضراء: راحة مستدامة تحترم البيئة.',
+ i:`<path d="M105 145 L200 65 L295 145" fill="none" stroke="${N}" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/><path d="M200 118 C262 148 262 220 200 258 C138 220 138 148 200 118Z" fill="${GR}"/><path d="M200 150 V235" stroke="#fff" stroke-width="7" stroke-linecap="round"/>`},
+{full:1,d:'علامة نصية: كلمة «أكتوبر» تتنفس بموجة هواء تحتها.',
+ i:`<text x="200" y="170" text-anchor="middle" font-family="Cairo,sans-serif" font-size="96" font-weight="800" fill="${N}">أكتوبر</text><path d="M85 200 q29 -24 58 0 t58 0 t58 0 t58 0" fill="none" stroke="${T}" stroke-width="10" stroke-linecap="round"/><text x="200" y="265" text-anchor="middle" font-family="Cairo,sans-serif" font-size="30" font-weight="700" fill="${G}">مركز للتكييف</text><text x="200" y="330" text-anchor="middle" font-family="Cairo,sans-serif" font-size="14" font-weight="700" letter-spacing="5" fill="${N}">OCTOBER AC CENTER</text>`}
+];
+const svg=l=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#fff"/>${l.i}${l.full?'':txt()}</svg>`;
+
+return {START,L,svg};
+})(),
+(function(){
+
+const START=11;
+const N='#0B2545',T='#13A89E',G='#B8965A',GR='#3E8E5A';
+const txt=(c1=N,c2=G)=>`<text x="200" y="312" text-anchor="middle" font-family="Cairo,Tajawal,sans-serif" font-size="32" font-weight="800" fill="${c1}">مركز أكتوبر للتكييف</text><text x="200" y="350" text-anchor="middle" font-family="Cairo,sans-serif" font-size="14" font-weight="700" letter-spacing="5" fill="${c2}">OCTOBER AC CENTER</text>`;
+const L=[
+{d:'حرف الكاف بتدفق نسيم: بداية «كل» ما يخص التكييف.',
+ i:`<path d="M292 88 V195 Q292 238 250 238 H118" fill="none" stroke="${N}" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/><path d="M232 190 L168 158 L232 132" fill="none" stroke="${T}" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>`},
+{d:'مفتاح بأسنان متدرجة: التحكم الكامل في راحتك وأمانك.',
+ i:`<circle cx="200" cy="105" r="42" fill="none" stroke="${N}" stroke-width="18"/><path d="M200 147 V255" stroke="${N}" stroke-width="18" stroke-linecap="round"/><path d="M200 205 H248 M200 240 H232" stroke="${G}" stroke-width="16" stroke-linecap="round"/>`},
+{d:'خلية سداسية منتظمة وسقف بالمساحة السلبية: هندسة دقيقة.',
+ i:`<polygon points="200,58 286.6,108 286.6,212 200,262 113.4,212 113.4,108" fill="${N}"/><path d="M150 170 L200 122 L250 170" fill="none" stroke="#fff" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/><circle cx="200" cy="208" r="12" fill="${G}"/>`},
+{d:'مروحة من ثلاث أوراق: تبريد يحترم الطبيعة ويحميها.',
+ i:`<g><path id="lf" d="M200 160 C168 122 186 84 200 58 C214 84 232 122 200 160Z" fill="${GR}"/></g><path d="M200 160 C168 122 186 84 200 58 C214 84 232 122 200 160Z" fill="${T}" transform="rotate(120 200 160)"/><path d="M200 160 C168 122 186 84 200 58 C214 84 232 122 200 160Z" fill="${G}" transform="rotate(240 200 160)"/><circle cx="200" cy="160" r="9" fill="#fff"/>`},
+{d:'قطرة نقاء تفتح باباً: خدمة تصلك حتى باب بيتك.',
+ i:`<path d="M200 55 C200 55 118 150 118 195 A82 82 0 0 0 282 195 C282 150 200 55 200 55Z" fill="${T}"/><path d="M168 252 V210 a32 32 0 0 1 64 0 V252Z" fill="#fff"/>`},
+{d:'نجمة عربية ثمانية بخطوط ذهبية: فخامة تنتمي لهويتنا.',
+ i:`<rect x="130" y="90" width="140" height="140" rx="10" fill="none" stroke="${G}" stroke-width="11" stroke-linejoin="round"/><rect x="130" y="90" width="140" height="140" rx="10" fill="none" stroke="${G}" stroke-width="11" stroke-linejoin="round" transform="rotate(45 200 160)"/><circle cx="200" cy="160" r="24" fill="${N}"/>`},
+{d:'ثلاثة مبانٍ متفاوتة الارتفاع تتنفس: تأسيس وبنية تحتية.',
+ i:`<rect x="105" y="150" width="54" height="110" rx="6" fill="${N}"/><rect x="173" y="88" width="54" height="172" rx="6" fill="${T}"/><rect x="241" y="128" width="54" height="132" rx="6" fill="${G}"/><path d="M100 205 H300" stroke="#fff" stroke-width="7"/>`},
+{d:'قوس معماري يفتح على هواء نقي: رقيّ وأمان في آن.',
+ i:`<path d="M115 260 V150 a85 85 0 0 1 170 0 V260Z" fill="${N}"/><path d="M155 260 V158 a45 45 0 0 1 90 0 V260Z" fill="#fff"/><circle cx="200" cy="158" r="14" fill="${G}"/>`},
+{d:'حرف الميم لـ«مركز» بذيل يلتف كنسمة خفيفة.',
+ i:`<circle cx="212" cy="120" r="40" fill="none" stroke="${N}" stroke-width="19"/><path d="M252 120 Q254 238 182 242 Q132 245 108 214" fill="none" stroke="${T}" stroke-width="19" stroke-linecap="round"/>`},
+{d:'أربع خدمات في رمز واحد: صيانة، تركيب، تأسيس، بيع.',
+ i:`<rect x="108" y="70" width="84" height="84" rx="8" fill="${N}"/><rect x="206" y="168" width="84" height="84" rx="8" fill="${N}"/><path d="M206 154 V98 A28 28 0 0 1 234 70 H290 V126 A28 28 0 0 1 262 154Z" fill="${T}"/><path d="M108 252 V196 A28 28 0 0 1 136 168 H192 V224 A28 28 0 0 1 164 252Z" fill="${G}"/>`}
+];
+const svg=l=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#fff"/>${l.i}${l.full?'':txt()}</svg>`;
+
+return {START,L,svg};
+})(),
+(function(){
+
+const START=21;
+const N='#0B2545',T='#13A89E',G='#B8965A',GR='#3E8E5A';
+const txt=(c1=N,c2=G)=>`<text x="200" y="312" text-anchor="middle" font-family="Cairo,Tajawal,sans-serif" font-size="32" font-weight="800" fill="${c1}">مركز أكتوبر للتكييف</text><text x="200" y="350" text-anchor="middle" font-family="Cairo,sans-serif" font-size="14" font-weight="700" letter-spacing="5" fill="${c2}">OCTOBER AC CENTER</text>`;
+const blade='M200 150 C188 118 194 98 200 88 C206 98 212 118 200 150Z';
+const L=[
+{d:'وحدة سبليت أنيقة تنساب منها ثلاث نسمات منعشة.',
+ i:`<rect x="88" y="78" width="224" height="86" rx="24" fill="${N}"/><path d="M114 142 H286" stroke="#fff" stroke-width="8" stroke-linecap="round"/><circle cx="278" cy="108" r="6" fill="${G}"/><path d="M150 188 q-14 20 0 40 t0 34 M200 188 q-14 20 0 40 t0 34 M250 188 q-14 20 0 40 t0 34" fill="none" stroke="${T}" stroke-width="10" stroke-linecap="round"/>`},
+{d:'مروحة الوحدة الخارجية بالمساحة السلبية: قوة هادئة وكفاءة.',
+ i:`<rect x="98" y="58" width="204" height="204" rx="28" fill="${N}"/><circle cx="200" cy="160" r="72" fill="none" stroke="#fff" stroke-width="7"/><g transform="translate(0 10)"><path d="${blade}" fill="#fff"/><path d="${blade}" fill="#fff" transform="rotate(120 200 150)"/><path d="${blade}" fill="#fff" transform="rotate(240 200 150)"/></g><circle cx="200" cy="160" r="10" fill="${G}"/>`},
+{d:'ريموت التحكم بلمسة ذهبية: الراحة بضغطة واحدة.',
+ i:`<rect x="158" y="52" width="84" height="210" rx="26" fill="${N}"/><rect x="174" y="72" width="52" height="36" rx="7" fill="#fff"/><text x="200" y="98" text-anchor="middle" font-family="Cairo,sans-serif" font-size="21" font-weight="800" fill="${T}">24°</text><circle cx="200" cy="146" r="15" fill="${G}"/><circle cx="178" cy="188" r="11" fill="#fff"/><circle cx="222" cy="188" r="11" fill="#fff"/><circle cx="178" cy="226" r="11" fill="${T}"/><circle cx="222" cy="226" r="11" fill="#fff"/>`},
+{d:'مؤشر حرارة يستقر عند نقطة الاعتدال: راحة أكتوبر طوال العام.',
+ i:`<path d="M110 220 A90 90 0 0 1 200 130" fill="none" stroke="${T}" stroke-width="24" stroke-linecap="round"/><path d="M200 130 A90 90 0 0 1 290 220" fill="none" stroke="${G}" stroke-width="24" stroke-linecap="round"/><path d="M200 220 L200 148" stroke="${N}" stroke-width="12" stroke-linecap="round"/><circle cx="200" cy="220" r="18" fill="${N}"/>`},
+{d:'شبكة مجاري هواء بفتحات ذهبية: تأسيس محكم من الأساس.',
+ i:`<path d="M105 95 H205 V225 H283 M205 160 H283" fill="none" stroke="${N}" stroke-width="26" stroke-linejoin="round"/><rect x="282" y="205" width="16" height="40" rx="4" fill="${T}"/><rect x="282" y="140" width="16" height="40" rx="4" fill="${T}"/><rect x="88" y="72" width="16" height="46" rx="4" fill="${G}"/>`},
+{d:'كاسيت سقفي بتوزيع هواء رباعي متناظر: تصميم فاخر.',
+ i:`<rect x="100" y="58" width="200" height="200" rx="28" fill="${N}"/><rect x="125" y="83" width="150" height="150" rx="14" fill="#fff"/><path d="M152 106 H248 M152 210 H248 M148 132 V184 M252 132 V184" stroke="${T}" stroke-width="11" stroke-linecap="round"/><rect x="180" y="138" width="40" height="40" rx="9" fill="${G}"/>`},
+{d:'حرف C ودرجة الحرارة: دقة القياس وبرودة محسوبة.',
+ i:`<path d="M254 112 A76 76 0 1 0 254 218" fill="none" stroke="${N}" stroke-width="26" stroke-linecap="round"/><path d="M160 165 q15 -17 30 0 t30 0" fill="none" stroke="${T}" stroke-width="10" stroke-linecap="round"/><circle cx="296" cy="84" r="17" fill="none" stroke="${G}" stroke-width="10"/>`},
+{d:'وحدة موفرة للطاقة تنفث أوراقاً خضراء بدل الهواء الساخن.',
+ i:`<path d="M95 98 H265 Q300 98 300 130 V150 Q300 168 282 172 L120 178 Q95 178 95 155Z" fill="${N}"/><path d="M118 160 L275 154" stroke="${G}" stroke-width="7" stroke-linecap="round"/><path d="M165 205 C145 225 162 250 186 256 C202 236 192 214 165 205Z" fill="${GR}"/><path d="M230 212 C216 228 226 246 244 250 C256 234 250 220 230 212Z" fill="${GR}"/>`},
+{d:'درع يحمي مروحة التبريد: صيانة آمنة تطيل عمر جهازك.',
+ i:`<path d="M200 55 L290 90 V165 C290 215 250 245 200 265 C150 245 110 215 110 165 V90 Z" fill="none" stroke="${N}" stroke-width="14" stroke-linejoin="round"/><g transform="translate(0 4)"><path d="${blade}" fill="${T}"/><path d="${blade}" fill="${T}" transform="rotate(120 200 150)"/><path d="${blade}" fill="${T}" transform="rotate(240 200 150)"/></g><circle cx="200" cy="154" r="9" fill="${G}"/>`},
+{d:'شارة أكتوبر: وحدة تكييف داخل ختم دائري يوحي بالثقة.',
+ i:`<circle cx="200" cy="160" r="102" fill="${N}"/><rect x="138" y="100" width="124" height="46" rx="14" fill="#fff"/><path d="M152 132 H248" stroke="${N}" stroke-width="5" stroke-linecap="round"/><circle cx="244" cy="116" r="5" fill="${G}"/><path d="M165 168 q-8 14 0 28 t0 28 M200 168 q-8 14 0 28 t0 28 M235 168 q-8 14 0 28 t0 28" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>`}
+];
+const svg=l=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#fff"/>${l.i}${l.full?'':txt()}</svg>`;
+
+return {START,L,svg};
+})(),
+(function(){
+
+const START=31;
+const N='#0B2545',T='#13A89E',G='#B8965A',R='#CE1126',K='#111111';
+const txt=(c1=N,c2=G)=>`<text x="200" y="312" text-anchor="middle" font-family="Cairo,Tajawal,sans-serif" font-size="32" font-weight="800" fill="${c1}">مركز أكتوبر للتكييف</text><text x="200" y="350" text-anchor="middle" font-family="Cairo,sans-serif" font-size="14" font-weight="700" letter-spacing="5" fill="${c2}">OCTOBER AC CENTER</text>`;
+const blade='M200 150 C188 118 194 98 200 88 C206 98 212 118 200 150Z';
+const L=[
+{d:'وحدة تكييف بأشرطة علم مصر: صناعة محلية بمعايير عالمية.',
+ i:`<defs><clipPath id="c31"><rect x="88" y="80" width="224" height="90" rx="24"/></clipPath></defs><g clip-path="url(#c31)"><rect x="88" y="80" width="224" height="30" fill="${R}"/><rect x="88" y="110" width="224" height="30" fill="#fff"/><rect x="88" y="140" width="224" height="30" fill="${K}"/></g><rect x="88" y="80" width="224" height="90" rx="24" fill="none" stroke="${N}" stroke-width="6"/><circle cx="200" cy="125" r="10" fill="${G}"/><path d="M150 195 q-14 20 0 38 t0 30 M200 195 q-14 20 0 38 t0 30 M250 195 q-14 20 0 38 t0 30" fill="none" stroke="${T}" stroke-width="10" stroke-linecap="round"/>`},
+{d:'مروحة الوحدة الخارجية بثلاث ريش: أحمر وأسود وذهبي مصري.',
+ i:`<rect x="98" y="58" width="204" height="204" rx="28" fill="none" stroke="${N}" stroke-width="10"/><circle cx="200" cy="160" r="72" fill="none" stroke="${N}" stroke-width="6"/><g transform="translate(0 10)"><path d="${blade}" fill="${R}"/><path d="${blade}" fill="${K}" transform="rotate(120 200 150)"/><path d="${blade}" fill="${G}" transform="rotate(240 200 150)"/></g><circle cx="200" cy="160" r="10" fill="${N}"/>`},
+{d:'علم يرفرف كنسمة تكييف: الوطن والراحة في شريط واحد.',
+ i:`<path d="M100 110 q25 -22 50 0 t50 0 t50 0 t50 0" fill="none" stroke="${R}" stroke-width="34"/><path d="M100 144 q25 -22 50 0 t50 0 t50 0 t50 0" fill="none" stroke="${N}" stroke-width="40"/><path d="M100 144 q25 -22 50 0 t50 0 t50 0 t50 0" fill="none" stroke="#fff" stroke-width="32"/><path d="M100 178 q25 -22 50 0 t50 0 t50 0 t50 0" fill="none" stroke="${K}" stroke-width="34"/><circle cx="200" cy="144" r="9" fill="${G}"/>`},
+{d:'هرم بألوان العلم تحت نسمة باردة: عراقة مصر وبرودة العصر.',
+ i:`<defs><clipPath id="c34"><polygon points="200,62 302,218 98,218"/></clipPath></defs><g clip-path="url(#c34)"><rect x="90" y="62" width="220" height="52" fill="${R}"/><rect x="90" y="114" width="220" height="52" fill="#fff"/><rect x="90" y="166" width="220" height="52" fill="${K}"/></g><polygon points="200,62 302,218 98,218" fill="none" stroke="${N}" stroke-width="7" stroke-linejoin="round"/><path d="M110 250 q22 -16 45 0 t45 0 t45 0" fill="none" stroke="${T}" stroke-width="10" stroke-linecap="round"/>`},
+{d:'درع الأمان بألوان العلم: حماية وثقة تحمل هوية مصرية.',
+ i:`<defs><clipPath id="c35"><path d="M200 55 L290 90 V165 C290 215 250 245 200 265 C150 245 110 215 110 165 V90 Z"/></clipPath></defs><g clip-path="url(#c35)"><rect x="100" y="50" width="200" height="75" fill="${R}"/><rect x="100" y="125" width="200" height="70" fill="#fff"/><rect x="100" y="195" width="200" height="75" fill="${K}"/></g><path d="M200 55 L290 90 V165 C290 215 250 245 200 265 C150 245 110 215 110 165 V90 Z" fill="none" stroke="${N}" stroke-width="10" stroke-linejoin="round"/><path d="M160 162 q13 -14 26 0 t26 0 t26 0" fill="none" stroke="${T}" stroke-width="9" stroke-linecap="round"/>`},
+{d:'ريموت شاشته علم مصر: تحكم كامل بلمسة وطنية.',
+ i:`<rect x="158" y="52" width="84" height="210" rx="26" fill="${N}"/><rect x="174" y="72" width="52" height="12" fill="${R}"/><rect x="174" y="84" width="52" height="12" fill="#fff"/><rect x="174" y="96" width="52" height="12" fill="${K}"/><circle cx="200" cy="90" r="4" fill="${G}"/><circle cx="200" cy="146" r="15" fill="${R}"/><circle cx="178" cy="188" r="11" fill="#fff"/><circle cx="222" cy="188" r="11" fill="#fff"/><circle cx="178" cy="226" r="11" fill="${G}"/><circle cx="222" cy="226" r="11" fill="#fff"/>`},
+{d:'لوتس مصر تتفتح بتلاته كفتحات تكييف بألوان العلم.',
+ i:`<path d="M200 66 C242 116 242 200 200 248 C158 200 158 116 200 66Z" fill="${R}"/><path d="M196 250 C138 244 94 200 98 138 C150 146 188 192 196 250Z" fill="${K}"/><path d="M204 250 C262 244 306 200 302 138 C250 146 212 192 204 250Z" fill="${G}"/>`},
+{d:'مسلة مصرية تحيط بها نسمتان بلوني العلم.',
+ i:`<path d="M185 84 L215 84 L228 252 L172 252Z" fill="${N}"/><path d="M185 84 L200 56 L215 84Z" fill="${G}"/><path d="M186 130 H214 M184 170 H216 M181 210 H219" stroke="#fff" stroke-width="7" stroke-linecap="round"/><path d="M128 120 q-20 26 0 52 t0 52" fill="none" stroke="${R}" stroke-width="13" stroke-linecap="round"/><path d="M272 120 q20 26 0 52 t0 52" fill="none" stroke="${K}" stroke-width="13" stroke-linecap="round"/>`},
+{d:'شارة بأشرطة العلم تتوسطها وحدة تكييف: ثقة وطنية.',
+ i:`<defs><clipPath id="c39"><circle cx="200" cy="160" r="100"/></clipPath></defs><g clip-path="url(#c39)"><rect x="95" y="55" width="210" height="72" fill="${R}"/><rect x="95" y="127" width="210" height="67" fill="#fff"/><rect x="95" y="194" width="210" height="72" fill="${K}"/></g><circle cx="200" cy="160" r="100" fill="none" stroke="${N}" stroke-width="9"/><rect x="146" y="134" width="108" height="42" rx="13" fill="${N}"/><path d="M158 164 H242" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="234" cy="146" r="5" fill="${G}"/><path d="M168 200 q-7 11 0 22 t0 16 M200 200 q-7 11 0 22 t0 16 M232 200 q-7 11 0 22 t0 16" fill="none" stroke="${T}" stroke-width="8" stroke-linecap="round"/>`},
+{full:1,d:'علامة نصية: «أكتوبر» تحتها نسمة بألوان مصر الثلاثة.',
+ i:`<text x="200" y="170" text-anchor="middle" font-family="Cairo,sans-serif" font-size="96" font-weight="800" fill="${N}">أكتوبر</text><path d="M85 198 q29 -20 58 0 t58 0 t58 0 t58 0" fill="none" stroke="${R}" stroke-width="8" stroke-linecap="round"/><path d="M85 214 q29 -20 58 0 t58 0 t58 0 t58 0" fill="none" stroke="${G}" stroke-width="8" stroke-linecap="round"/><path d="M85 230 q29 -20 58 0 t58 0 t58 0 t58 0" fill="none" stroke="${K}" stroke-width="8" stroke-linecap="round"/><text x="200" y="290" text-anchor="middle" font-family="Cairo,sans-serif" font-size="28" font-weight="700" fill="${N}">مركز للتكييف</text><text x="200" y="335" text-anchor="middle" font-family="Cairo,sans-serif" font-size="14" font-weight="700" letter-spacing="5" fill="${G}">OCTOBER AC CENTER</text>`}
+];
+const svg=l=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#fff"/>${l.i}${l.full?'':txt()}</svg>`;
+
+return {START,L,svg};
+})(),
+(function(){
+
+const START=41;
+const N='#0B2545',T='#13A89E',G='#B8965A',GR='#3E8E5A';
+const txt=(c1=N,c2=G)=>`<text x="200" y="312" text-anchor="middle" font-family="Cairo,Tajawal,sans-serif" font-size="32" font-weight="800" fill="${c1}">مركز أكتوبر للتكييف</text><text x="200" y="350" text-anchor="middle" font-family="Cairo,sans-serif" font-size="14" font-weight="700" letter-spacing="5" fill="${c2}">OCTOBER AC CENTER</text>`;
+const blade='M200 150 C188 118 194 98 200 88 C206 98 212 118 200 150Z';
+const star=(cx,cy,R,r,n=5)=>{let p=[];for(let i=0;i<n*2;i++){const a=Math.PI*i/n-Math.PI/2,d=i%2?r:R;p.push((cx+d*Math.cos(a)).toFixed(1)+','+(cy+d*Math.sin(a)).toFixed(1))}return p.join(' ')};
+const L=[
+{d:'الرقم 1 مبني من شرائح تكييف: الصدارة تبدأ من التفاصيل.',
+ i:`<polygon points="190,72 148,104 148,134 190,106" fill="${N}"/><rect x="190" y="72" width="44" height="190" rx="8" fill="${N}"/><path d="M190 130 H234 M190 168 H234 M190 206 H234" stroke="#fff" stroke-width="7"/><path d="M262 120 q18 -14 36 0 M262 156 q18 -14 36 0" fill="none" stroke="${T}" stroke-width="9" stroke-linecap="round"/>`},
+{d:'تاج ذهبي فوق وحدة تكييف: ملوك الصيانة والتركيب.',
+ i:`<path d="M138 112 L156 70 L180 96 L200 60 L220 96 L244 70 L262 112Z" fill="${G}"/><rect x="138" y="112" width="124" height="12" rx="4" fill="${G}"/><rect x="100" y="142" width="200" height="72" rx="22" fill="${N}"/><path d="M124 194 H276" stroke="#fff" stroke-width="7" stroke-linecap="round"/><path d="M150 234 q-9 10 0 20 M200 234 q-9 10 0 20 M250 234 q-9 10 0 20" fill="none" stroke="${T}" stroke-width="8" stroke-linecap="round"/>`},
+{d:'إكليل غار حول مروحة تبريد: تتويج لتميّز يحترم البيئة.',
+ i:`${[-60,-30,0,30,60].map(a=>`<ellipse cx="112" cy="160" rx="8" ry="17" fill="${GR}" transform="rotate(${a} 200 160)"/><ellipse cx="288" cy="160" rx="8" ry="17" fill="${GR}" transform="rotate(${-a} 200 160)"/>`).join('')}<g transform="translate(0 10)"><path d="${blade}" fill="${N}"/><path d="${blade}" fill="${N}" transform="rotate(120 200 150)"/><path d="${blade}" fill="${N}" transform="rotate(240 200 150)"/></g><circle cx="200" cy="160" r="9" fill="${G}"/>`},
+{d:'منصة التتويج: المركز الأول تعلوه وحدة تكييف مضيئة.',
+ i:`<rect x="95" y="195" width="70" height="60" fill="${N}"/><rect x="165" y="155" width="70" height="100" fill="${G}"/><rect x="235" y="215" width="70" height="40" fill="${T}"/><text x="200" y="228" text-anchor="middle" font-family="Cairo,sans-serif" font-size="52" font-weight="800" fill="#fff">1</text><rect x="170" y="112" width="60" height="30" rx="10" fill="${N}"/><path d="M182 130 H218" stroke="#fff" stroke-width="4" stroke-linecap="round"/>`},
+{d:'ميدالية المركز الأول: رقم 1 تلامسه نسمة منعشة.',
+ i:`<path d="M148 55 H184 L214 122 H178Z" fill="${N}"/><path d="M252 55 H216 L186 122 H222Z" fill="${T}"/><circle cx="200" cy="184" r="70" fill="${G}"/><circle cx="200" cy="184" r="55" fill="none" stroke="#fff" stroke-width="5"/><text x="200" y="208" text-anchor="middle" font-family="Cairo,sans-serif" font-size="70" font-weight="800" fill="#fff">1</text><path d="M168 232 q16 -12 32 0 t32 0" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round"/>`},
+{d:'كأس البطولة يحمل نسمة داخله: تفوق يُبرّد ويُريح.',
+ i:`<path d="M140 78 H260 V128 A60 60 0 0 1 140 128Z" fill="${N}"/><path d="M140 96 H116 Q112 142 148 152 M260 96 H284 Q288 142 252 152" fill="none" stroke="${N}" stroke-width="11" stroke-linecap="round"/><rect x="189" y="184" width="22" height="42" fill="${N}"/><rect x="156" y="226" width="88" height="24" rx="7" fill="${G}"/><path d="M163 122 q12 -13 24 0 t24 0 t24 0" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>`},
+{d:'خمس نجوم فوق وحدة تكييف: تقييم كامل لخدمة متكاملة.',
+ i:`${[105,152,200,248,295].map(x=>`<polygon points="${star(x,85,22,9)}" fill="${G}"/>`).join('')}<rect x="110" y="132" width="180" height="72" rx="22" fill="${N}"/><path d="M134 184 H266" stroke="#fff" stroke-width="7" stroke-linecap="round"/><path d="M150 226 q-9 10 0 20 M200 226 q-9 10 0 20 M250 226 q-9 10 0 20" fill="none" stroke="${T}" stroke-width="8" stroke-linecap="round"/>`},
+{d:'أسهم هواء تصعد نحو القمة: نحن دائماً في الصدارة.',
+ i:`<path d="M112 108 L200 60 L288 108" fill="none" stroke="${G}" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/><path d="M112 164 L200 116 L288 164" fill="none" stroke="${N}" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/><path d="M112 220 L200 172 L288 220" fill="none" stroke="${T}" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>`},
+{d:'ختم الجودة رقم 1 تحته نسمة: ثقة يشهد لها السوق.',
+ i:`<polygon points="${star(200,160,106,94,20)}" fill="${G}"/><circle cx="200" cy="160" r="74" fill="${N}"/><text x="200" y="198" text-anchor="middle" font-family="Cairo,sans-serif" font-size="100" font-weight="800" fill="#fff">1</text><path d="M166 226 q17 -14 34 0 t34 0" fill="none" stroke="${T}" stroke-width="8" stroke-linecap="round"/>`},
+{full:1,d:'علامة نصية: تاج صغير فوق «أكتوبر» ونسمة تؤكد الريادة.',
+ i:`<path d="M170 92 L180 62 L192 78 L200 54 L208 78 L220 62 L230 92Z" fill="${G}"/><text x="200" y="185" text-anchor="middle" font-family="Cairo,sans-serif" font-size="96" font-weight="800" fill="${N}">أكتوبر</text><path d="M85 214 q29 -22 58 0 t58 0 t58 0 t58 0" fill="none" stroke="${T}" stroke-width="10" stroke-linecap="round"/><text x="200" y="275" text-anchor="middle" font-family="Cairo,sans-serif" font-size="27" font-weight="700" fill="${G}">رقم 1 في التكييف</text><text x="200" y="330" text-anchor="middle" font-family="Cairo,sans-serif" font-size="14" font-weight="700" letter-spacing="5" fill="${N}">OCTOBER AC CENTER</text>`}
+];
+const svg=l=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="#fff"/>${l.i}${l.full?'':txt()}</svg>`;
+
+return {START,L,svg};
+})(),
+(function(){
+
+const START=51;
+const N='#0B2545',T='#13A89E',G='#B8965A',GR='#3E8E5A';
+const txt=(c1=N,c2=G)=>`<text x="200" y="312" text-anchor="middle" font-family="Cairo,Tajawal,sans-serif" font-size="32" font-weight="800" fill="${c1}">مركز أكتوبر للتكييف</text><text x="200" y="350" text-anchor="middle" font-family="Cairo,sans-serif" font-size="14" font-weight="700" letter-spacing="5" fill="${c2}">OCTOBER AC CENTER</text>`;
+const blade='M200 150 C188 118 194 98 200 88 C206 98 212 118 200 150Z';
+const L=[
+{d:'حلقة O يخترقها تيار هواء من نقطة ذهبية: أبسط تعبير عن التبريد.',
+ i:`<path d="M272.5 126.2 A80 80 0 1 0 272.5 193.8" fill="none" stroke="${N}" stroke-width="22" stroke-linecap="round"/><path d="M200 160 H312" stroke="${T}" stroke-width="18" stroke-linecap="round"/><circle cx="200" cy="160" r="12" fill="${G}"/>`},
+{d:'أيقونة بمساحة سلبية: وحدة تكييف ونسمات تنبثق من أرضية كحلية.',
+ i:`<rect x="100" y="56" width="200" height="200" rx="46" fill="${N}"/><rect x="132" y="96" width="136" height="50" rx="17" fill="#fff"/><path d="M150 128 H250" stroke="${N}" stroke-width="6" stroke-linecap="round"/><circle cx="246" cy="112" r="6" fill="${G}"/><path d="M158 168 q-9 14 0 28 t0 26 M200 168 q-9 14 0 28 t0 26 M242 168 q-9 14 0 28 t0 26" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>`},
+{d:'شبكة نقاط تتضاءل كتيار هواء يتلاشى بنعومة.',
+ i:`${[[100,N],[160,T],[220,N]].map(([y,c])=>[120,175,230,285].map((x,k)=>`<circle cx="${x}" cy="${y}" r="${[15,12,9,6][k]}" fill="${c}"/>`).join('')).join('')}`},
+{d:'مكعب متكامل بثلاثة أوجه، وشرائح تكييف على وجهه: خدمة من كل الجهات.',
+ i:`<polygon points="200,68 278,113 200,158 122,113" fill="${T}"/><polygon points="122,113 200,158 200,250 122,205" fill="${N}"/><polygon points="278,113 200,158 200,250 278,205" fill="${G}"/><path d="M122 138 L200 183 M122 163 L200 208 M122 188 L200 233" stroke="#fff" stroke-width="5"/>`},
+{bg:N,tc:['#fff',G],d:'نسخة داكنة فاخرة: مروحة ذهبية داخل إطار رفيع.',
+ i:`<rect x="18" y="18" width="364" height="364" fill="none" stroke="${G}" stroke-width="2"/><circle cx="200" cy="160" r="76" fill="none" stroke="${G}" stroke-width="4"/><g transform="translate(0 10)"><path d="${blade}" fill="${G}"/><path d="${blade}" fill="${G}" transform="rotate(120 200 150)"/><path d="${blade}" fill="${G}" transform="rotate(240 200 150)"/></g><circle cx="200" cy="160" r="9" fill="${N}"/>`},
+{bg:N,tc:['#fff',G],d:'الألف أول الحروف: رمز الأولية تحيط به نسمات على كحلي عميق.',
+ i:`<circle cx="200" cy="66" r="10" fill="${G}"/><rect x="187" y="88" width="26" height="168" rx="13" fill="${G}"/><path d="M92 150 q22 -16 44 0 t44 0 M220 150 q22 -16 44 0 t44 0" fill="none" stroke="${T}" stroke-width="9" stroke-linecap="round"/><path d="M108 190 q20 -14 40 0 t32 0 M220 190 q20 -14 40 0 t32 0" fill="none" stroke="${T}" stroke-width="9" stroke-linecap="round" opacity="1"/>`},
+{d:'شرائط هواء بحواف مائلة تتناقص: حركة وسرعة بلا تعقيد.',
+ i:`<polygon points="105,90 295,90 245,140 105,140" fill="${N}"/><polygon points="105,152 245,152 195,202 105,202" fill="${T}"/><polygon points="105,214 195,214 155,254 105,254" fill="${G}"/>`},
+{d:'ميناء ساعة دقيق يشير إلى 24°: الدرجة المثالية للراحة.',
+ i:`<circle cx="200" cy="160" r="100" fill="none" stroke="${N}" stroke-width="6"/>${[...Array(12).keys()].map(i=>`<path d="M200 68 V86" stroke="${G}" stroke-width="6" stroke-linecap="round" transform="rotate(${i*30} 200 160)"/>`).join('')}<text x="200" y="182" text-anchor="middle" font-family="Cairo,sans-serif" font-size="60" font-weight="800" fill="${N}">24°</text><path d="M168 208 q16 -12 32 0 t32 0" fill="none" stroke="${T}" stroke-width="8" stroke-linecap="round"/>`},
+{d:'ورقة خضراء تشقها رياح بالمساحة السلبية: استدامة في حركة.',
+ i:`<path d="M200 60 C288 100 292 196 200 260 C108 196 112 100 200 60Z" fill="${GR}"/><path d="M132 192 C170 192 192 152 268 130" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/><path d="M150 226 C186 224 208 194 252 176" fill="none" stroke="#fff" stroke-width="12" stroke-linecap="round"/>`},
+{d:'قوس عربي بإطار ذهبي يطل على وحدة تكييف: فخامة هادئة.',
+ i:`<path d="M108 262 V140 a92 92 0 0 1 184 0 V262Z" fill="none" stroke="${G}" stroke-width="5"/><path d="M124 246 V142 a76 76 0 0 1 152 0 V246Z" fill="${N}"/><rect x="150" y="116" width="100" height="38" rx="13" fill="#fff"/><path d="M166 142 H234" stroke="${N}" stroke-width="5" stroke-linecap="round"/><circle cx="234" cy="128" r="5" fill="${G}"/><path d="M172 176 q-7 11 0 22 t0 20 M200 176 q-7 11 0 22 t0 20 M228 176 q-7 11 0 22 t0 20" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/>`}
+];
+const svg=l=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="${l.bg||'#fff'}"/>${l.i}${l.full?'':txt(...(l.tc||[N,G]))}</svg>`;
+
+return {START,L,svg};
+})(),
+(function(){
+
+const START=61;
+const N='#0B2545',T='#13A89E',G='#B8965A',GR='#3E8E5A';
+const txt=(c1=N,c2=G)=>`<text x="200" y="312" text-anchor="middle" font-family="Cairo,Tajawal,sans-serif" font-size="32" font-weight="800" fill="${c1}">مركز أكتوبر للتكييف</text><text x="200" y="350" text-anchor="middle" font-family="Cairo,sans-serif" font-size="14" font-weight="700" letter-spacing="5" fill="${c2}">OCTOBER AC CENTER</text>`;
+const blade='M200 150 C188 118 194 98 200 88 C206 98 212 118 200 150Z';
+const feather='M0 0 C-14 -50 -6 -100 0 -130 C6 -100 14 -50 0 0Z';
+const fan=(cx,cy,sc,c)=>`<g transform="translate(${cx} ${cy}) scale(${sc}) translate(-200 -150)"><path d="${blade}" fill="${c}"/><path d="${blade}" fill="${c}" transform="rotate(120 200 150)"/><path d="${blade}" fill="${c}" transform="rotate(240 200 150)"/></g>`;
+const L=[
+{d:'الرقم 10 لأكتوبر: الواحد عمود، والصفر مروحة تدور.',
+ i:`<polygon points="105,70 58,104 58,130 105,98" fill="${N}"/><rect x="105" y="70" width="34" height="182" rx="10" fill="${N}"/><circle cx="238" cy="160" r="74" fill="none" stroke="${T}" stroke-width="22"/>${fan(238,160,.8,G)}<circle cx="238" cy="160" r="8" fill="${N}"/>`},
+{d:'تبريد وتدفئة في دائرة واحدة: توازن أكتوبر على مدار العام.',
+ i:`<path d="M200 70 A90 90 0 0 1 200 250 A45 45 0 0 1 200 160 A45 45 0 0 0 200 70Z" fill="${T}"/><path d="M200 70 A90 90 0 0 0 200 250 A45 45 0 0 0 200 160 A45 45 0 0 1 200 70Z" fill="${G}"/><circle cx="200" cy="115" r="12" fill="${G}"/><circle cx="200" cy="205" r="12" fill="${T}"/>`},
+{d:'موجة إنفرتر تهدأ حتى تستقر: راحة ثابتة وطاقة أقل.',
+ i:`<path d="M90 160 q20 -80 40 0 t40 0 q15 -40 30 0 t30 0 q8 -18 16 0 t16 0" fill="none" stroke="${N}" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/><path d="M262 160 H318" stroke="${T}" stroke-width="16" stroke-linecap="round"/><circle cx="318" cy="160" r="13" fill="${G}"/>`},
+{d:'قلب من نسمتين تحتضن مروحة: نعتني بتفاصيل راحتك.',
+ i:`<path d="M200 252 C130 207 100 152 125 114 C147 82 190 98 200 134" fill="none" stroke="${T}" stroke-width="18" stroke-linecap="round"/><path d="M200 252 C270 207 300 152 275 114 C253 82 210 98 200 134" fill="none" stroke="${G}" stroke-width="18" stroke-linecap="round"/>${fan(200,172,.55,N)}<circle cx="200" cy="172" r="5" fill="${G}"/>`},
+{d:'شمس أكتوبر تُبرَّد بالشرائح: حرارة تتحول إلى نسيم.',
+ i:`<defs><clipPath id="c65"><circle cx="200" cy="150" r="96"/></clipPath></defs><g clip-path="url(#c65)"><rect x="100" y="50" width="200" height="100" fill="${G}"/><rect x="100" y="150" width="200" height="100" fill="${T}"/><rect x="100" y="152" width="200" height="5" fill="#fff"/><rect x="100" y="172" width="200" height="8" fill="#fff"/><rect x="100" y="194" width="200" height="11" fill="#fff"/><rect x="100" y="218" width="200" height="14" fill="#fff"/></g>`},
+{d:'حرف A من شريطي هواء يلتقيان عند القمة، وموجة ذهبية تربطهما.',
+ i:`<polygon points="106,252 178,78 206,78 134,252" fill="${T}"/><polygon points="294,252 222,78 194,78 266,252" fill="${N}"/><path d="M152 200 q24 -20 48 0 t48 0" fill="none" stroke="${G}" stroke-width="13" stroke-linecap="round"/>`},
+{d:'جناح ريش يتحول إلى مروحة: حرية الهواء في شكل واحد.',
+ i:`<g transform="translate(160 240)">${[[10,N],[35,T],[60,G],[85,N]].map(([a,c])=>`<path d="${feather}" fill="${c}" transform="rotate(${a})"/>`).join('')}</g>`},
+{d:'نخلة مصرية بسعفات تنسدل كنسمات: ظل وبرودة وأصالة.',
+ i:`<path d="M205 150 Q197 210 200 262" fill="none" stroke="${N}" stroke-width="15" stroke-linecap="round"/><g fill="none" stroke-width="14" stroke-linecap="round"><path d="M205 150 Q205 100 205 72" stroke="${GR}"/><path d="M205 150 Q170 100 118 118" stroke="${T}"/><path d="M205 150 Q240 100 292 118" stroke="${T}"/><path d="M205 150 Q160 140 116 182" stroke="${GR}"/><path d="M205 150 Q250 140 294 182" stroke="${GR}"/></g><circle cx="205" cy="150" r="11" fill="${G}"/>`},
+{d:'ألماسة الفخامة بصفاء بلورة الجليد: أعلى معايير التبريد.',
+ i:`<polygon points="140,100 260,100 235,150 165,150" fill="${T}"/><polygon points="100,150 140,100 165,150" fill="${N}"/><polygon points="300,150 260,100 235,150" fill="${N}"/><polygon points="100,150 165,150 200,255" fill="${G}"/><polygon points="300,150 235,150 200,255" fill="${G}"/><polygon points="165,150 235,150 200,255" fill="${N}"/>`},
+{bg:N,tc:[G,'#fff'],full:1,d:'ختام فاخر: علامة نصية ذهبية على كحلي مع مروحة مصغرة كتاج.',
+ i:`<rect x="16" y="16" width="368" height="368" fill="none" stroke="${G}" stroke-width="2"/><circle cx="200" cy="80" r="32" fill="none" stroke="${G}" stroke-width="3"/>${fan(200,84,.45,G)}<text x="200" y="200" text-anchor="middle" font-family="Cairo,sans-serif" font-size="100" font-weight="800" fill="${G}">أكتوبر</text><path d="M90 232 H150 M250 232 H310" stroke="${G}" stroke-width="2"/><text x="200" y="240" text-anchor="middle" font-family="Cairo,sans-serif" font-size="26" font-weight="700" fill="#fff">للتكييف</text><text x="200" y="305" text-anchor="middle" font-family="Cairo,sans-serif" font-size="14" font-weight="700" letter-spacing="8" fill="#fff">OCTOBER AC CENTER</text>`}
+];
+const svg=l=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="${l.bg||'#fff'}"/>${l.i}${l.full?'':txt(...(l.tc||[N,G]))}</svg>`;
+
+return {START,L,svg};
+})(),
+(function(){
+
+const START=71;
+const N='#0B2545',T='#13A89E',G='#B8965A',GR='#3E8E5A';
+const txt=(c1=N,c2=G)=>`<text x="200" y="312" text-anchor="middle" font-family="Cairo,Tajawal,sans-serif" font-size="32" font-weight="800" fill="${c1}">مركز أكتوبر للتكييف</text><text x="200" y="350" text-anchor="middle" font-family="Cairo,sans-serif" font-size="14" font-weight="700" letter-spacing="5" fill="${c2}">OCTOBER AC CENTER</text>`;
+const blade='M200 150 C188 118 194 98 200 88 C206 98 212 118 200 150Z';
+const petal='M200 160 C176 130 180 100 200 82 C220 100 224 130 200 160Z';
+const L=[
+{d:'وحدة سبليت تبتسم بشريحتها: خدمة ودودة ونسيم بلمسة ذهبية.',
+ i:`<rect x="90" y="66" width="220" height="102" rx="32" fill="${N}"/><path d="M132 128 Q200 166 268 128" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round"/><circle cx="270" cy="98" r="6" fill="${G}"/><path d="M118 205 q41 -30 82 0 t82 0" fill="none" stroke="${T}" stroke-width="12" stroke-linecap="round"/><path d="M150 240 q25 -20 50 0 t50 0" fill="none" stroke="${G}" stroke-width="12" stroke-linecap="round"/>`},
+{d:'مروحة الوحدة الخارجية تتفتح كزهرة بست بتلات.',
+ i:`<rect x="98" y="58" width="204" height="204" rx="36" fill="none" stroke="${N}" stroke-width="8"/>${[0,1,2,3,4,5].map(k=>`<path d="${petal}" fill="${k%2?G:T}" transform="rotate(${k*60} 200 160)"/>`).join('')}<circle cx="200" cy="160" r="13" fill="${N}"/>`},
+{d:'وحدة تكييف بمنظور ثلاثي الأبعاد مبسط، ونسمات تنساب أسفلها.',
+ i:`<polygon points="110,118 200,84 300,118 200,152" fill="${T}"/><polygon points="110,118 200,152 200,204 110,170" fill="${N}"/><polygon points="300,118 200,152 200,204 300,170" fill="${N}" opacity=".78"/><path d="M122 148 L188 174 M122 161 L188 187" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="276" cy="150" r="5" fill="${G}"/><path d="M150 224 q-8 12 0 24 t0 20 M200 224 q-8 12 0 24 t0 20 M250 224 q-8 12 0 24 t0 20" fill="none" stroke="${T}" stroke-width="9" stroke-linecap="round"/>`},
+{d:'مقبض ترموستات فاخر: التحكم بالدرجة كقطعة ساعة راقية.',
+ i:`<circle cx="200" cy="160" r="100" fill="none" stroke="${G}" stroke-width="5"/><circle cx="200" cy="160" r="86" fill="${N}"/>${[...Array(9).keys()].map(k=>{const a=(135+k*33.75)*Math.PI/180;return `<circle cx="${(200+66*Math.cos(a)).toFixed(1)}" cy="${(160+66*Math.sin(a)).toFixed(1)}" r="${3+k*.5}" fill="${k<6?T:G}"/>`}).join('')}<path d="M211 143 L228 118" stroke="#fff" stroke-width="8" stroke-linecap="round"/><circle cx="200" cy="160" r="14" fill="#fff"/>`},
+{d:'مجاري الهواء كخريطة مترو: شبكة تأسيس تصل كل غرفة.',
+ i:`<g fill="none" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"><path d="M95 95 H185 L250 160 V235" stroke="${N}"/><path d="M95 155 H150 L200 205 H305" stroke="${T}"/><path d="M95 215 H120 L190 145 H305" stroke="${G}"/></g>${[[95,95,N],[250,235,N],[95,155,T],[305,205,T],[95,215,G],[305,145,G]].map(([x,y,c])=>`<circle cx="${x}" cy="${y}" r="10" fill="#fff" stroke="${c}" stroke-width="6"/>`).join('')}`},
+{d:'طاقة الرياح تدير مروحة التبريد: وحدة تكييف تحترم الكوكب.',
+ i:`<polygon points="195,128 205,128 212,238 188,238" fill="${N}"/><g transform="translate(200 118) scale(1.25) translate(-200 -150)"><path d="${blade}" fill="${GR}"/><path d="${blade}" fill="${T}" transform="rotate(120 200 150)"/><path d="${blade}" fill="${G}" transform="rotate(240 200 150)"/></g><circle cx="200" cy="118" r="8" fill="${N}"/><rect x="146" y="238" width="108" height="28" rx="9" fill="${G}"/><path d="M160 252 H240" stroke="#fff" stroke-width="4" stroke-linecap="round"/>`},
+{d:'زر التشغيل العالمي بنسمة في قلبه: ننعش يومك بلمسة.',
+ i:`<path d="M244.7 96.1 A78 78 0 1 1 155.3 96.1" fill="none" stroke="${N}" stroke-width="22" stroke-linecap="round"/><path d="M200 72 V146" stroke="${G}" stroke-width="22" stroke-linecap="round"/><path d="M165 192 q17 -14 35 0 t35 0" fill="none" stroke="${T}" stroke-width="10" stroke-linecap="round"/>`},
+{d:'قمة باردة بشرائح تكييف تقطعها: برودة تليق بالقمم.',
+ i:`<path d="M90 240 L190 80 L290 240Z" fill="${N}"/><path d="M210 240 L275 135 L340 240Z" fill="${T}"/><circle cx="122" cy="104" r="14" fill="${G}"/><path d="M70 190 H360 M70 212 H360 M70 234 H360" stroke="#fff" stroke-width="5"/>`},
+{d:'بيت نافذته وحدة تكييف: الراحة تسكن كل منزل.',
+ i:`<path d="M110 260 V150 L200 70 L290 150 V260Z" fill="${N}" stroke="${N}" stroke-width="10" stroke-linejoin="round"/><rect x="150" y="146" width="100" height="42" rx="13" fill="#fff"/><path d="M164 174 H236" stroke="${N}" stroke-width="5" stroke-linecap="round"/><circle cx="234" cy="158" r="5" fill="${G}"/><path d="M170 206 q-6 10 0 20 t0 16 M200 206 q-6 10 0 20 t0 16 M230 206 q-6 10 0 20 t0 16" fill="none" stroke="${T}" stroke-width="8" stroke-linecap="round"/>`},
+{bg:N,tc:['#fff',G],d:'ختام فاخر: وحدة ذهبية على كحلي عميق بإطار رفيع.',
+ i:`<rect x="16" y="16" width="368" height="368" fill="none" stroke="${G}" stroke-width="2"/><rect x="100" y="66" width="200" height="88" rx="28" fill="${G}"/><path d="M126 130 H274" stroke="${N}" stroke-width="7" stroke-linecap="round"/><circle cx="272" cy="94" r="6" fill="${N}"/><path d="M150 180 q-8 14 0 28 t0 26 M200 180 q-8 14 0 28 t0 26 M250 180 q-8 14 0 28 t0 26" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round"/>`}
+];
+const svg=l=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="${l.bg||'#fff'}"/>${l.i}${l.full?'':txt(...(l.tc||[N,G]))}</svg>`;
+
+return {START,L,svg};
+})(),
+(function(){
+
+const START=81;
+const N='#0B2545',T='#13A89E',G='#B8965A',GR='#3E8E5A';
+const txt=(c1=N,c2=G)=>`<text x="200" y="312" text-anchor="middle" font-family="Cairo,Tajawal,sans-serif" font-size="32" font-weight="800" fill="${c1}">مركز أكتوبر للتكييف</text><text x="200" y="350" text-anchor="middle" font-family="Cairo,sans-serif" font-size="14" font-weight="700" letter-spacing="5" fill="${c2}">OCTOBER AC CENTER</text>`;
+const blade='M200 150 C188 118 194 98 200 88 C206 98 212 118 200 150Z';
+const fan=(cx,cy,sc,c)=>`<g transform="translate(${cx} ${cy}) scale(${sc}) translate(-200 -150)"><path d="${blade}" fill="${c}"/><path d="${blade}" fill="${c}" transform="rotate(120 200 150)"/><path d="${blade}" fill="${c}" transform="rotate(240 200 150)"/></g>`;
+const px=['NNNNNN','NNNNNG','.T.T.T','T.T.T.','..T.T.'],po=[1,1,1,.7,.4],pc={N:N,G:G,T:T};
+const L=[
+{d:'انتشار الهواء بنقاط هافتون: من الوحدة إلى الغرفة بنعومة.',
+ i:`<rect x="100" y="64" width="200" height="56" rx="20" fill="${N}"/><circle cx="270" cy="92" r="5" fill="${G}"/>${[0,1,2,3,4].map(k=>{const n=3+2*k;return [...Array(n).keys()].map(j=>`<circle cx="${200+(j-(n-1)/2)*24}" cy="${150+k*24}" r="${(8-k*1.3).toFixed(1)}" fill="${T}"/>`).join('')}).join('')}`},
+{d:'لانهاية من مروحتين لا تتوقفان: خدمة بلا حدود وراحة دائمة.',
+ i:`<path d="M200 160 C160 100 80 100 80 160 C80 220 160 220 200 160" fill="none" stroke="${N}" stroke-width="22" stroke-linecap="round"/><path d="M200 160 C240 100 320 100 320 160 C320 220 240 220 200 160" fill="none" stroke="${T}" stroke-width="22" stroke-linecap="round"/>${fan(140,160,.42,N)}${fan(260,160,.42,T)}<circle cx="200" cy="160" r="9" fill="${G}"/>`},
+{d:'وحدة تكييف مرسومة بخط واحد متصل، ينتهي بدوامة هواء.',
+ i:`<path d="M134 174 H266 a24 24 0 0 0 24 -24 V130 a24 24 0 0 0 -24 -24 H134 a24 24 0 0 0 -24 24 V150 a24 24 0 0 0 24 24 H190 C250 174 250 222 205 222 C168 222 168 262 208 262" fill="none" stroke="${N}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M140 140 H260" stroke="${T}" stroke-width="8" stroke-linecap="round"/><circle cx="268" cy="122" r="5" fill="${G}"/>`},
+{d:'تكييف ذكي بالبكسل: وحدة رقمية ونسمات تتلاشى تدريجياً.',
+ i:px.map((row,r)=>[...row].map((ch,c)=>ch==='.'?'':`<rect x="${89+c*38}" y="${70+r*38}" width="32" height="32" rx="8" fill="${pc[ch]}" opacity="${po[r]}"/>`).join('')).join('')},
+{d:'طبقات من الورق المقصوص: ثلاث طبقات لثلاثة عناصر: جودة وخدمة وأمان.',
+ i:`<rect x="124" y="100" width="200" height="110" rx="30" fill="${G}"/><rect x="112" y="88" width="200" height="110" rx="30" fill="${T}"/><rect x="100" y="76" width="200" height="110" rx="30" fill="${N}"/><path d="M126 150 H274" stroke="#fff" stroke-width="8" stroke-linecap="round"/><circle cx="268" cy="106" r="6" fill="${G}"/>`},
+{d:'حرفا AC: الـ A بشريط تكييف والـ C مروحة تدور في قلبه.',
+ i:`<path d="M92 252 L150 86 L208 252" fill="none" stroke="${N}" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/><path d="M122 194 H178" stroke="${G}" stroke-width="12" stroke-linecap="round"/><path d="M319.5 130.2 A62 62 0 1 0 319.5 209.8" fill="none" stroke="${T}" stroke-width="22" stroke-linecap="round"/>${fan(272,170,.42,G)}`},
+{d:'شعار متحرك: مروحة كبيرة تدور بهدوء داخل حلقة كحلية.',
+ i:`<circle cx="200" cy="160" r="94" fill="none" stroke="${N}" stroke-width="14"/><g><animateTransform attributeName="transform" type="rotate" from="0 200 160" to="360 200 160" dur="6s" repeatCount="indefinite"/><g transform="translate(200 160) scale(1.25) translate(-200 -150)"><path d="${blade}" fill="${T}"/><path d="${blade}" fill="${G}" transform="rotate(120 200 150)"/><path d="${blade}" fill="${N}" transform="rotate(240 200 150)"/></g></g><circle cx="200" cy="160" r="10" fill="#fff" stroke="${N}" stroke-width="5"/>`},
+{d:'شعار متحرك: نسمات متدفقة من الوحدة كخيوط هواء حقيقية.',
+ i:`<rect x="110" y="64" width="180" height="68" rx="22" fill="${N}"/><path d="M140 104 H260" stroke="#fff" stroke-width="6" stroke-linecap="round"/>${[[150,T],[200,G],[250,T]].map(([x,c],k)=>`<path d="M${x} 156 q-14 24 0 48 t0 52" fill="none" stroke="${c}" stroke-width="10" stroke-linecap="round" stroke-dasharray="22 14"><animate attributeName="stroke-dashoffset" from="0" to="-72" dur="${1.4+k*.2}s" repeatCount="indefinite"/></path>`).join('')}`},
+{d:'مفتاح الحياة المصري (عنخ) بمروحة داخل حلقته: تراث يُنعش الحاضر.',
+ i:`<path d="M200 160 V262" stroke="${N}" stroke-width="18" stroke-linecap="round"/><ellipse cx="200" cy="110" rx="42" ry="50" fill="none" stroke="${N}" stroke-width="18"/><path d="M138 196 H262" stroke="${G}" stroke-width="18" stroke-linecap="round"/>${fan(200,112,.5,T)}<circle cx="200" cy="112" r="6" fill="${G}"/>`},
+{d:'شراع فلوكة نيلية بشرائح تكييف: نسيم النيل في خدمتك.',
+ i:`<polygon points="205,58 205,205 105,205" fill="${N}"/><path d="M146 145 H205 M132 165 H205 M119 185 H205" stroke="#fff" stroke-width="5"/><polygon points="217,100 217,205 275,205" fill="${G}"/><path d="M92 218 H308 L282 244 H118Z" fill="${T}"/><path d="M110 264 q20 -10 40 0 t40 0 t40 0 t40 0" fill="none" stroke="${G}" stroke-width="6" stroke-linecap="round"/>`}
+];
+const svg=l=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400"><rect width="400" height="400" fill="${l.bg||'#fff'}"/>${l.i}${l.full?'':txt(...(l.tc||[N,G]))}</svg>`;
+
+return {START,L,svg};
+})()
+];
+const ALL=[];BATCHES.forEach(b=>b.L.forEach((l,k)=>ALL.push({n:b.START+k,d:l.d,svg:b.svg(l)})));
+ALL.sort((a,b)=>a.n-b.n);
+const $=id=>document.getElementById(id);
+let sel=new Set();
+try{sel=new Set(JSON.parse(localStorage.getItem('octSel')||'[]'))}catch(e){}
+const save=()=>{try{localStorage.setItem('octSel',JSON.stringify([...sel]))}catch(e){}};
+let onlySel=false,vis=[];
+function toast(t){const e=$('toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',2200)}
+function toggle(n){sel.has(n)?sel.delete(n):sel.add(n);save();render();if($('modal').classList.contains('open'))mh()}
+function render(){
+  const g=$('grid');g.innerHTML='';
+  vis=ALL.filter(x=>!onlySel||sel.has(x.n));
+  if(!vis.length){g.innerHTML='<div class="empty">لم تختر أي شعار بعد. اضغط على ♡ في أي بطاقة.</div>'}
+  vis.forEach((x,i)=>{
+    const c=document.createElement('div');c.className='card'+(sel.has(x.n)?' sel':'');
+    c.innerHTML=`<span class="num">${x.n}</span><button class="heart" aria-label="اختيار">${sel.has(x.n)?'♥':'♡'}</button><p class="desc">${x.d}</p>${x.svg}`;
+    c.querySelector('.heart').onclick=e=>{e.stopPropagation();toggle(x.n)};
+    c.onclick=()=>openM(i);
+    g.appendChild(c);
+  });
+  $('cnt').textContent='المختار: '+sel.size;
+}
+const nums=()=>[...sel].sort((a,b)=>a-b);
+const msg=()=>{const nm=$('cname').value.trim();return 'مرحباً، اختياراتي من شعارات مركز أكتوبر للتكييف'+(nm?' ('+nm+')':'')+':\nالشعارات رقم: '+nums().join('، ')};
+$('wa').onclick=()=>{if(!sel.size){toast('اختر شعاراً واحداً على الأقل');return}window.open('https://wa.me/?text='+encodeURIComponent(msg()),'_blank')};
+$('cp').onclick=async()=>{if(!sel.size){toast('اختر شعاراً واحداً على الأقل');return}
+  const t=msg();try{await navigator.clipboard.writeText(t)}catch(e){const a=document.createElement('textarea');a.value=t;document.body.appendChild(a);a.select();try{document.execCommand('copy')}catch(_){}a.remove()}toast('تم النسخ ✓')};
+$('clr').onclick=()=>{sel.clear();save();render()};
+$('tAll').onclick=()=>{onlySel=false;$('tAll').classList.add('on');$('tSel').classList.remove('on');render()};
+$('tSel').onclick=()=>{onlySel=true;$('tSel').classList.add('on');$('tAll').classList.remove('on');render()};
+
+let cur=0,s=1,x=0,y=0,drag=null;
+const apply=()=>$('holder').style.transform=`translate(${x}px,${y}px) scale(${s})`;
+const reset=()=>{s=1;x=y=0;apply()};
+const mh=()=>{const it=vis[cur];if(it)$('mheart').textContent=sel.has(it.n)?'♥ تم الاختيار':'♡ اختيار'};
+function openM(k){if(!vis.length)return;cur=(k+vis.length)%vis.length;const it=vis[cur];$('holder').innerHTML=it.svg;$('mtitle').textContent='شعار '+it.n;$('mdesc').textContent=it.d;mh();$('modal').classList.add('open');reset()}
+const closeM=()=>$('modal').classList.remove('open');
+const zoom=f=>{s=Math.min(8,Math.max(.5,s*f));apply()};
+$('zin').onclick=()=>zoom(1.25);$('zout').onclick=()=>zoom(.8);$('reset').onclick=reset;
+$('prev').onclick=()=>openM(cur-1);$('next').onclick=()=>openM(cur+1);$('close').onclick=closeM;
+$('mheart').onclick=()=>{const it=vis[cur];if(!it)return;const n=it.n;const was=onlySel;sel.has(n)?sel.delete(n):sel.add(n);save();
+  if(onlySel&&!sel.has(n)){render();closeM();return}render();mh()};
+$('stage').addEventListener('wheel',e=>{e.preventDefault();zoom(e.deltaY<0?1.1:.9)},{passive:false});
+$('stage').addEventListener('pointerdown',e=>{if(e.target.id==='stage'&&s===1){closeM();return}drag={px:e.clientX-x,py:e.clientY-y};$('stage').setPointerCapture(e.pointerId)});
+$('stage').addEventListener('pointermove',e=>{if(drag){x=e.clientX-drag.px;y=e.clientY-drag.py;apply()}});
+$('stage').addEventListener('pointerup',()=>drag=null);
+document.addEventListener('keydown',e=>{if(!$('modal').classList.contains('open'))return;if(e.key==='Escape')closeM();if(e.key==='ArrowRight')openM(cur-1);if(e.key==='ArrowLeft')openM(cur+1);if(e.key==='+')zoom(1.25);if(e.key==='-')zoom(.8)});
+if(location.protocol==='file:'){$('dl').style.display='';$('dl').onclick=()=>{const it=vis[cur];const b=new Blob([it.svg],{type:'image/svg+xml'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='october-logo-'+it.n+'.svg';a.click()}}
+render();
+</script>
+</body>
+</html>
